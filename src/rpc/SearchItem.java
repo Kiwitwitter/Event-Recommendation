@@ -3,6 +3,7 @@ package rpc;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -49,22 +50,25 @@ public class SearchItem extends HttpServlet {
 //			e.printStackTrace();
 //		}
 //		RpcHelper.writeJsonArray(response, array);
+		
 		double lat = Double.parseDouble(request.getParameter("lat"));
 		double lon = Double.parseDouble(request.getParameter("lon"));
-
-		// term can be empty
 		String term = request.getParameter("term");
+		String userId = request.getParameter("user_id");
+		
 		DBConnection connection = DBConnectionFactory.getConnection();
 		try {
 			List<Item> items = connection.searchItems(lat, lon, term);
+			Set<String> favoriteItems = connection.getFavoriteItemIds(userId);
 
 			JSONArray array = new JSONArray();
 			for (Item item : items) {
-				array.put(item.toJSONObject());
+				JSONObject obj = item.toJSONObject();
+				obj.put("favorite", favoriteItems.contains(item.getItemId()));
+				array.put(obj);
 			}
 			RpcHelper.writeJsonArray(response, array);
-
-		} catch (Exception e) {
+		} catch (JSONException e) {
 			e.printStackTrace();
 		} finally {
 			connection.close();

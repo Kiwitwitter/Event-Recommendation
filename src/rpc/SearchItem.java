@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import db.DBConnection;
+import db.DBConnectionFactory;
 import entity.Item;
 import external.TicketMasterAPI;
 
@@ -23,19 +25,21 @@ import external.TicketMasterAPI;
 @WebServlet("/search")
 public class SearchItem extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public SearchItem() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
 
 	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#HttpServlet()
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	public SearchItem() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 //		JSONArray array = new JSONArray();
 //		try {
 //			array.put(new JSONObject().put("username", "1234"));
@@ -47,27 +51,32 @@ public class SearchItem extends HttpServlet {
 //		RpcHelper.writeJsonArray(response, array);
 		double lat = Double.parseDouble(request.getParameter("lat"));
 		double lon = Double.parseDouble(request.getParameter("lon"));
-		
+
 		// term can be empty
 		String term = request.getParameter("term");
-		TicketMasterAPI ticketMasterAPI = new TicketMasterAPI();
-		List<Item> items = ticketMasterAPI.search(lat, lon, term);
-		JSONArray array = new JSONArray();
+		DBConnection connection = DBConnectionFactory.getConnection();
 		try {
+			List<Item> items = connection.searchItems(lat, lon, term);
+
+			JSONArray array = new JSONArray();
 			for (Item item : items) {
-				JSONObject obj = item.toJSONObject();
-				array.put(obj);
+				array.put(item.toJSONObject());
 			}
-		}catch(Exception e) {
+			RpcHelper.writeJsonArray(response, array);
+
+		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			connection.close();
 		}
-		RpcHelper.writeJsonArray(response, array);
 	}
 
 	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		doGet(request, response);
 	}

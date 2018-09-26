@@ -65,7 +65,6 @@ public class Login extends HttpServlet {
 			JSONObject input = RpcHelper.readJSONObject(request);
 			String userId = input.getString("user_id");
 			String password = input.getString("password");
-
 			JSONObject obj = new JSONObject();
 			if (connection.verifyLogin(userId, password)) {
 				HttpSession session = request.getSession();
